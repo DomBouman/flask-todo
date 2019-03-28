@@ -1,13 +1,9 @@
 # importing request, make_response, and render_template from flask.
 from flask import Flask, request, make_response, render_template
+
 import psycopg2
 
-conn=psycopg2.connect("dbname='todoapp' host='localhost'")
-try:
-    conn=psycopg2.connect("dbname='todoapp' host='localhost'")
-    print("Connection Successful")
-except:
-    print("I am unable to connect to the database.")
+from . import db
 
 # Defining create_app with test_config equal to none.
 def create_app(test_config=None):
