@@ -8,6 +8,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'flask',
+        'gunicord',
     ],
     extras_require={
         'test': [

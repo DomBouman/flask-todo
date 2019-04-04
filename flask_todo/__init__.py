@@ -1,17 +1,16 @@
-# importing request, make_response, and render_template from flask.
 from flask import Flask, request, make_response, render_template
 
 import psycopg2
+from datetime import datetime
 
-from . import db
-
-# Defining create_app with test_config equal to none.
 def create_app(test_config=None):
-# Creating an object from the Flask class.
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(
         SECRET_KEY='dev',
+        DB_NAME='todoapp',
+        DB_USER='flasktodouser',
+
     )
 
     if test_config is None:
@@ -19,20 +18,43 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    @app.route('/', methods=['GET', 'POST', 'PUT'])
+
+    from . import db
+    db.init_app(app)
+
+
+    @app.route('/', methods=['GET'])
     def index():
-        Homework = {'name': 'Homework', 'complete': False, 'date_set': '5/21/05'}
-        Wash_Dishes = {'name': 'Wash Dishes', 'complete': False, 'date_set': '9/21/09'}
-        Laundry = {'name': 'Laundry', 'complete': False, 'date_set': '1/13/15'}
-        items = [Homework, Wash_Dishes, Laundry]
-        return render_template('index.html', items=items)
+        con = db.get_db()
+        cur = con.cursor()
+
+        cur.execute("SELECT * FROM todoitems;")
+
+        todo_results = cur.fetchall()
+        cur.close()
+
+        return render_template('index.html', items=todo_results, action="All")
+
 
     @app.route("/create", methods=['GET', 'POST'])
+    # This page is for creating new todos
     def create_todo():
-        return render_template('create_todo.html')
+        if request.method == 'POST':
+            new_item = request.form['task']
 
-    @app.route("/update", methods=['GET', 'PUT'])
-    def update_todo():
-        return render_template('update_todo.html')
+            con = db.get_db()
+            cur = con.cursor()
+            cur.execute("INSERT INTO todoitems (name, date_added) VALUES (%s, %s)",(new_item, datetime.now()))
 
+            con.commit()
+            cur.close()
+
+            return render_template('create.html')
+
+        elif request.method == 'GET':
+            return render_template('create.html')
+
+
+
+            return render_template('create.html')
     return app

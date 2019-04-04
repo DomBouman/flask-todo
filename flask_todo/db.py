@@ -1,26 +1,42 @@
-#Import library
 import psycopg2
 
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
 
-#Connect using psycopg2
-conn = psycopg2.connect("dbname=todoapp host=localhost")
+def get_db():
+    if 'db' not in g:
+        print(current_app.config['DB_USER'])
+        g.db = psycopg2.connect(
+            f"dbname={current_app.config['DB_NAME']}" +
+            f" user={current_app.config['DB_USER']}"
 
-#Activate connection cursor
-cur = conn.cursor()
+        )
 
-#Select table and display
-cur.execute("SELECT name, completed, date_added")
-rows = cur.fetchall()
-rows
+    return g.db
 
-#Insert entry
-cur.execute("INSERT INTO todo_items (name, completed, date_added) VALUES (%s, %s, %s)", (name, False, date))
-conn.commit()
+def close_db(e=None):
+    db = g.pop('db', None)
+
+    if db is not None:
+        db.close()
 
 
-#Close Connection
-cur.close()
-conn.close()
+def init_db():
+    db = get_db()
+
+    with current_app.open_resource('schema.sql') as f:
+        cur = db.cursor()
+        cur.execute(f.read())
+        cur.close()
+        cur.commit()
+
+@click.command('init-db')
+@with_appcontext
+def init_db_command():
+      init_db()
+      click.echo('Initialized the database.')
+
+def init_app(app):
+    app.teardown_appcontext(close_db)
+    app.cli.add_command(init_db_command)

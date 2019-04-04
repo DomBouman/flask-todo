@@ -1,4 +1,4 @@
-{% extends "layouts/base.html"%}
+\{% extends "layouts/base.html"%}
 
 {% block title %}Todo Manager{% endblock %}
 
@@ -6,25 +6,7 @@
 <h1>Todo list</h1>
 
 {% for item in items %}
-
-<li> Item: {{ item.name }}, Completed: {{ item.complete }}, Time created: {{ item.date_set }}</li>
-
+  <li>Task: {{ item[1] }}, Completed: {{ item[2] }}, Created: {{ item[3] }}</li>
 {% endfor %}
-
-<h2>Add to list</h2>
-
-<form method="post" accept-charset="utf-8">
-  <label> Insert your task:
-    <input type="text" name="add-todo" id="to" />
-  </label>
-  <input type="submit" value="Submit">
-</form>
-
-<form method="post" accept-charset="utf-8">
-  <label> Which item would you like to complete?
-    <input type="text" name="complete-todo" id="to" />
-  </label>
-  <input type="submit" value="Submit">
-</form>
 
 {% endblock %}
